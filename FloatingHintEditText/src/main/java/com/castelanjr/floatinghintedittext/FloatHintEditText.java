@@ -1,6 +1,7 @@
 package com.castelanjr.floatinghintedittext;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -14,27 +15,45 @@ import android.widget.EditText;
  * User: castelanjr
  * Date: 12/7/13
  * Time: 7:24 PM
- * Copyright (C) 2013 Nyvra Software. All rights reserved.
+ * Copyright (C) 2013 Angelo Castelan. All rights reserved.
  */
 public class FloatHintEditText extends EditText {
-    private Paint mTextPaint;
+    private Paint mHintPaint;
+    private int mFloatingHintColor;
 
     public FloatHintEditText(Context context, AttributeSet attrs) {
         super(context, attrs);
+
+        TypedArray array = context.getTheme().obtainStyledAttributes(attrs, R.styleable.FloatingHintEditText, 0, 0);
+        try {
+            mFloatingHintColor = array.getColor(R.styleable.FloatingHintEditText_floatingHintColor,
+                    context.getResources().getColor(android.R.color.holo_blue_dark));
+        } finally {
+            array.recycle();
+        }
+
+        initFloatingHint();
+    }
+
+    public FloatHintEditText(Context context) {
+        super(context);
         initFloatingHint();
     }
 
     private void initFloatingHint() {
-        mTextPaint = new Paint();
-        mTextPaint.setAntiAlias(true);
-        mTextPaint.setTextSize(10 * getResources().getDisplayMetrics().density);
-        mTextPaint.setColor(Color.TRANSPARENT);
+        if (getPaddingTop() < 16) {
+            setPadding(getPaddingLeft(), 16, getPaddingRight(), getPaddingBottom());
+        }
+        mHintPaint = new Paint();
+        mHintPaint.setAntiAlias(true);
+        mHintPaint.setTextSize(10 * getResources().getDisplayMetrics().density);
+        mHintPaint.setColor(Color.TRANSPARENT);
 
         addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 if (s.length() == 0) {
-                    mTextPaint.setColor(getHintTextColors().getDefaultColor());
+                    mHintPaint.setColor(mFloatingHintColor);
                     invalidate();
                 }
             }
@@ -47,7 +66,7 @@ public class FloatHintEditText extends EditText {
             @Override
             public void afterTextChanged(Editable s) {
                 if (s.length() == 0) {
-                    mTextPaint.setColor(Color.TRANSPARENT);
+                    mHintPaint.setColor(Color.TRANSPARENT);
                     invalidate();
                 }
             }
@@ -57,6 +76,6 @@ public class FloatHintEditText extends EditText {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        canvas.drawText(getHint().toString(), getPaddingLeft(), getPaddingTop(), mTextPaint);
+        canvas.drawText(getHint().toString(), getPaddingLeft(), getPaddingTop(), mHintPaint);
     }
 }
